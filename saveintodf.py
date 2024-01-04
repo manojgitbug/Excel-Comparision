@@ -1,5 +1,6 @@
 import os
 import openpyxl
+import datetime
 import pandas as pd
 import win32com.client as win32
 
@@ -22,38 +23,58 @@ def extract_formulas(file_path):
 countofflase = 0
 
 def compare_formulas(df1, df2):
+    global countofflase
     merged_df = pd.merge(df1, df2, on=['Sheet Name', 'Coordinates'], how='outer', suffixes=('_1', '_2'))
     merged_df['Status'] = merged_df['Formulas_1'] == merged_df['Formulas_2']
-    if(merged_df['Status'].all() == False):
-        countofflase = countofflase + 1
+    countofflase = len(merged_df[merged_df['Status'] == False])
     return merged_df
 
-def sendmail(recipients, cc_recipients=None):
+def sendmail(recipients, file_path3, reportname=None, Location1=None, Location2=None, cc_recipients=None):
     outlook = win32.Dispatch('outlook.application')
     mail = outlook.CreateItem(0)
     mail.To = recipients
     mail.CC = cc_recipients
-    mail.Subject = 'Mail regarding validation'
-    mail.Body = 'Hi Team, \n\nThe results for the validation of the given files is as follows\nThe formulas in the report ' + ('are same' if countofflase == 0 else 'are not same and count of formulas which are not same is ' + str(countofflase))
-    # mail.HTMLBody = '<div><img src=""C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Documents\\Learning\\Py\\Formulas\\1.png"" alt="Business Card Image"></div>' #this field is optional
-    # mail.GetInspector
-    # signature = mail.HTMLBody
-    # mail.HTMLBody = signature
+    status = 'Success' if countofflase == 0 else 'Failure'
+    mail.Subject = status + ' | ' + 'Excel Formula Comparison' + ' | ' + reportname
+    attachment3 = file_path3
+    mail.Attachments.Add(attachment3)
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    html_body = f'''
+    <html>
+    <body>
+        <h2>Excel Formula Comparison Report</h2>
+        <p><strong>Report Name:</strong> {reportname}</p>
+        <p><strong>Location 1:</strong> {Location1}</p>
+        <p><strong>Location 2:</strong> {Location2}</p>
+        <p><strong>Status:</strong> <span style="color: {'green' if status == 'Success' else 'red'}"><strong>{status}</strong></span></p>
+        <p><strong>No of not matching formulas:</strong> {countofflase}</p>
+        <p><strong>Executed time:</strong> {current_time}</p>
+        <br>
+        <p>Thanks and Regards,</p>
+        <p><i>Reporting Dev Team</i></p>
+    </body>
+    </html>
+    '''
+    
+    mail.HTMLBody = html_body
     mail.Send()
     print("Mail sent successfully")
 
 
 
 if __name__ == '__main__':
-    file_path1 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Desktop\\test1.xlsm'
-    file_path2 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Desktop\\test2.xlsm'
+    file_path1 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Desktop\\Dev\\test11.xlsm'
+    file_path2 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Desktop\\Prod\\test21.xlsm'
+    reportname = os.path.basename(file_path1)
+    Location1 = os.path.basename(os.path.dirname(file_path1))
+    Location2 = os.path.basename(os.path.dirname(file_path2))
     df1 = extract_formulas(file_path1)
     df2 = extract_formulas(file_path2)
     merged_df = compare_formulas(df1, df2)
     merged_df.to_excel('formulas_comparison.xlsx', index=False)
+    file_path3 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Documents\\Learning\\Py\\Formulas\\formulas_comparison.xlsx'
     recipients = 'saimanojb@maqsoftware.com'
-    recipients = input("Enter recipients (separated by commas): ")
-    cc_recipients = input("Enter cc recipients (separated by commas): ")
-    sendmail(recipients, cc_recipients)
-
-
+    # cc_recipients = 'saipavanm@maqsoftware.com'
+    # recipients = input("Enter recipients: ")
+    cc_recipients = input("Enter cc recipients: ")
+    sendmail(recipients, file_path3, reportname,Location1,Location2,cc_recipients)
