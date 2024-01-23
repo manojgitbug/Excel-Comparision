@@ -3,6 +3,8 @@ import openpyxl
 import datetime
 import pandas as pd
 import win32com.client as win32
+import warnings
+warnings.filterwarnings("ignore")
 
 def extract_formulas(file_path):
     wb = openpyxl.load_workbook(file_path, read_only=True, keep_vba=True)
@@ -14,10 +16,12 @@ def extract_formulas(file_path):
             for cell in row:
                 if cell.data_type == 'f' and str(cell.value).startswith('='):
                     formula = str(cell.value)
+                    font = cell.font.name
+                    fontsize = cell.font.sz
+                    
                     coordinates = cell.coordinate
-                    formulas_with_details.append((file_path, os.path.basename(file_path), sheet, coordinates, formula.replace('=','')))
-
-    df = pd.DataFrame(formulas_with_details, columns=['Path', 'Excel Name', 'Sheet Name', 'Coordinates', 'Formulas'])
+                    formulas_with_details.append((file_path, os.path.basename(file_path), sheet, coordinates, formula.replace('=',''), font))
+    df = pd.DataFrame(formulas_with_details, columns=['Path', 'Excel Name', 'Sheet Name', 'Coordinates', 'Formulas', 'Font'])
     return df
 
 countofflase = 0
@@ -55,7 +59,6 @@ def sendmail(recipients, file_path3, reportname=None, Location1=None, Location2=
     </body>
     </html>
     '''
-    
     mail.HTMLBody = html_body
     mail.Send()
     print("Mail sent successfully")
@@ -73,8 +76,8 @@ if __name__ == '__main__':
     merged_df = compare_formulas(df1, df2)
     merged_df.to_excel('formulas_comparison.xlsx', index=False)
     file_path3 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Documents\\Learning\\Py\\Formulas\\formulas_comparison.xlsx'
-    recipients = 'saimanojb@maqsoftware.com'
-    # cc_recipients = 'saipavanm@maqsoftware.com'
-    # recipients = input("Enter recipients: ")
-    cc_recipients = input("Enter cc recipients: ")
-    sendmail(recipients, file_path3, reportname,Location1,Location2,cc_recipients)
+    # recipients = 'saimanojb@maqsoftware.com'
+    # # cc_recipients = 'saipavanm@maqsoftware.com'
+    # # recipients = input("Enter recipients: ")
+    # cc_recipients = input("Enter cc recipients: ")
+    # sendmail(recipients, file_path3, reportname,Location1,Location2,cc_recipients)
