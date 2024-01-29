@@ -15,13 +15,24 @@ def extract_formulas(file_path):
         for row in ws.iter_rows():
             for cell in row:
                 if cell.data_type == 'f' and str(cell.value).startswith('='):
-                    formula = str(cell.value)
-                    font = cell.font.name
-                    fontsize = cell.font.sz
-                    
+                    formula = str(cell.value)                    
                     coordinates = cell.coordinate
-                    formulas_with_details.append((file_path, os.path.basename(file_path), sheet, coordinates, formula.replace('=',''), font))
-    df = pd.DataFrame(formulas_with_details, columns=['Path', 'Excel Name', 'Sheet Name', 'Coordinates', 'Formulas', 'Font'])
+                    formulas_with_details.append((file_path, os.path.basename(file_path), sheet, coordinates, formula.replace('=','')))
+    df = pd.DataFrame(formulas_with_details, columns=['Path', 'Excel Name', 'Sheet Name', 'Coordinates', 'Formulas'])
+    return df
+
+def extract_format(file_path):
+    wb = openpyxl.load_workbook(file_path, read_only=True, keep_vba=True)
+
+    formats_with_details = []
+    for sheet in wb.sheetnames:
+        ws = wb[sheet]
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.data_type == 'f' and str(cell.value).startswith('='):
+                    
+                    formats_with_details.append((file_path, os.path.basename(file_path), sheet, coordinates, formula.replace('=','')))
+    df = pd.DataFrame(formats_with_details, columns=['Path', 'Excel Name', 'Sheet Name', 'Coordinates', 'Formulas'])
     return df
 
 countofflase = 0
@@ -63,6 +74,8 @@ def sendmail(recipients, file_path3, reportname=None, Location1=None, Location2=
     mail.Send()
     print("Mail sent successfully")
 
+def formatting():
+    pass
 
 
 if __name__ == '__main__':
