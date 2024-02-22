@@ -102,37 +102,44 @@ def sendmail(recipients, file_path3, file_path4, reportname=None, Location1=None
     print("Mail sent successfully")
 
 def conditional_formatting(file_path):
+    print("Loading the workbook")
     wb = openpyxl.load_workbook(file_path, read_only=False, keep_vba=True)
+    print("Creating an empty list to store the conditional formatting rules")
     conditional_formatting_rules = []
+    print("Iterating through each sheet")
     for sheet in wb.sheetnames:
         ws = wb[sheet]
         if not ws.sheet_state == 'hidden':
             for range_ in ws.conditional_formatting:
                 for rule in ws.conditional_formatting[range_]:
+                    print("Extract range, type, formula, and detailed format")
                     # Extract range, type, formula, and detailed format
                     rule_range = range_.sqref
                     rule_type = rule.type
                     rule_formula = rule.formula
                     # Extract detailed formatting information
+                    print("Bg Color")
                     bg_color = (
                         rule.dxf.fill.bgColor.rgb
                         if rule.dxf.fill and rule.dxf.fill.bgColor
                         else None
                     )
+                    print("Font style")
                     font_style = {
                         'bold': rule.dxf.font.b,
                         'italic': rule.dxf.font.i,
                         # Add more font attributes as needed
                     }
-
+                    print("Border style")
                     border_style = {
                         # Extract border attributes as needed
                     }
-
+                    print("Convert RGB object to a string representation")
                     # Convert RGB object to a string representation
                     bg_color_str = str(bg_color) if bg_color else None
 
                     # Create a dictionary for each rule
+                    print("Create a dictionary for each rule")
                     rule_data = {
                         'RANGE': rule_range,
                         # 'type': rule_type,
@@ -144,6 +151,7 @@ def conditional_formatting(file_path):
                             # Add more formatting categories as needed
                         },
                     }
+                    print("Append the dictionary to the list")
                     conditional_formatting_rules.append(rule_data)
     df = pd.DataFrame(conditional_formatting_rules, columns=['RANGE', 'Formula', 'Format'])
     return df
@@ -154,29 +162,29 @@ def compare_cformats(df1, df2):
     return merged_df
                 
 if __name__ == '__main__':
-    file_path1 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Desktop\\Dev\\American Triangulation - January Forecast Dev.xlsm'
-    file_path2 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Desktop\\Prod\\American Triangulation - January Forecast Prod.xlsm'
+    file_path1 = 'C:\\Users\\v-mbnvsai\\Downloads\\America Triangulation – January Forecast_D5_Refresh.xlsm'
+    file_path2 = 'C:\\Users\\v-mbnvsai\\Downloads\\Americas Triangulation Allocation Report_Jan_v2_old version.xlsm'
     reportname = os.path.basename(file_path1)
 
     Location1 = os.path.basename(os.path.dirname(file_path1))
     Location2 = os.path.basename(os.path.dirname(file_path2))
-    df1 = extract_formulas(file_path1)
-    df2 = extract_formulas(file_path2)
-    merged_df = compare_formulas(df1, df2)
-    merged_df.to_excel('formulas_comparison.xlsx', index=False)
-    file_path3 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Documents\\Learning\\Py\\Formulas\\formulas_comparison.xlsx'
+    # df1 = extract_formulas(file_path1)
+    # df2 = extract_formulas(file_path2)
+    # merged_df = compare_formulas(df1, df2)
+    # merged_df.to_excel('formulas_comparison.xlsx', index=False)
+    # file_path3 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Documents\\Learning\\Py\\Formulas\\formulas_comparison.xlsx'
     # recipients = 'seshuc@maqsoftware.com'
     # #cc_recipients = 'saipavanm@maqsoftware.com'
-    recipients = input("Enter recipients: ")
-    cc_recipients = input("Enter cc recipients: ")
+    # recipients = input("Enter recipients: ")
+    # cc_recipients = input("Enter cc recipients: ")
 
-    df3 = extract_format(file_path1)
-    df4 = extract_format(file_path2)
-    merged_df1 = compare_formats(df3, df4)
-    merged_df1.to_excel('formats_comparison.xlsx', index=False)
-    file_path4 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Documents\\Learning\\Py\\Formulas\\formats_comparison.xlsx'
-    # df5 = conditional_formatting(file_path1)
-    # df6 = conditional_formatting(file_path2)
-    # merged_df2 = compare_cformats(df5, df6)
-    # merged_df2.to_excel('cformats_comparison.xlsx', index=False)
-    sendmail(recipients, file_path3, file_path4, reportname, Location1, Location2, cc_recipients=None)
+    # df3 = extract_format(file_path1)
+    # df4 = extract_format(file_path2)
+    # merged_df1 = compare_formats(df3, df4)
+    # merged_df1.to_excel('formats_comparison.xlsx', index=False)
+    # file_path4 = 'C:\\Users\\v-mbnvsai\\OneDrive - Microsoft\\Documents\\Learning\\Py\\Formulas\\formats_comparison.xlsx'
+    df5 = conditional_formatting(file_path1)
+    df6 = conditional_formatting(file_path2)
+    merged_df2 = compare_cformats(df5, df6)
+    merged_df2.to_excel('cformats_comparison.xlsx', index=False)
+    # sendmail(recipients, file_path3, file_path4, reportname, Location1, Location2, cc_recipients=None)
